@@ -13,7 +13,7 @@
 #ifdef WEBRTC_CODEC_AMR
 // NOTE! GSM AMR is not included in the open-source package. The following
 // interface file is needed:
-#include "webrtc/modules/audio_coding/main/codecs/amr/interface/amr_interface.h"
+#include "webrtc/modules/audio_coding/codecs/amr/include/amr_interface.h"
 #include "webrtc/modules/audio_coding/main/interface/audio_coding_module_typedefs.h"
 #include "webrtc/modules/audio_coding/main/acm2/acm_common_defs.h"
 #include "webrtc/system_wrappers/interface/rw_lock_wrapper.h"

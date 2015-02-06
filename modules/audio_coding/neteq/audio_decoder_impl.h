@@ -24,6 +24,12 @@
 #ifdef WEBRTC_CODEC_G722
 #include "webrtc/modules/audio_coding/codecs/g722/include/g722_interface.h"
 #endif
+#ifdef WEBRTC_CODEC_G729
+#include "webrtc/modules/audio_coding/codecs/g729/include/g729_interface.h"
+#endif
+#ifdef WEBRTC_CODEC_AMR
+#include "webrtc/modules/audio_coding/codecs/amr/include/amr_interface.h"
+#endif
 #ifdef WEBRTC_CODEC_ILBC
 #include "webrtc/modules/audio_coding/codecs/ilbc/interface/ilbc.h"
 #endif
@@ -121,6 +127,40 @@ class AudioDecoderIlbc : public AudioDecoder {
  private:
   IlbcDecoderInstance* dec_state_;
   DISALLOW_COPY_AND_ASSIGN(AudioDecoderIlbc);
+};
+#endif
+
+#ifdef WEBRTC_CODEC_G729
+class AudioDecoderG729 : public AudioDecoder {
+ public:
+  AudioDecoderG729();
+  virtual ~AudioDecoderG729();
+  virtual int Decode(const uint8_t* encoded, size_t encoded_len,
+                     int16_t* decoded, SpeechType* speech_type);
+  virtual bool HasDecodePlc() const { return false; }
+  virtual int Init();
+  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len);
+
+ private:
+  G729DecInst* dec_state_;
+  DISALLOW_COPY_AND_ASSIGN(AudioDecoderG729);
+};
+#endif
+
+#ifdef WEBRTC_CODEC_AMR
+class AudioDecoderAMR : public AudioDecoder {
+ public:
+  AudioDecoderAMR();
+  virtual ~AudioDecoderAMR();
+  virtual int Decode(const uint8_t* encoded, size_t encoded_len,
+                     int16_t* decoded, SpeechType* speech_type);
+  virtual bool HasDecodePlc() const { return false; }
+  virtual int Init();
+  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len);
+
+ private:
+  AMRDecInst* dec_state_;
+  DISALLOW_COPY_AND_ASSIGN(AudioDecoderAMR);
 };
 #endif
 
@@ -240,6 +280,12 @@ enum NetEqDecoder {
   kDecoderArbitrary,
   kDecoderOpus,
   kDecoderOpus_2ch,
+#ifdef WEBRTC_CODEC_G729
+  kDecoderG729,
+#endif
+#ifdef WEBRTC_CODEC_AMR
+  kDecoderAMR,
+#endif
 };
 
 // Returns true if |codec_type| is supported.

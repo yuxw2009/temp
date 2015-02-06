@@ -11,6 +11,8 @@
     'codecs': [
       'G711',
       'G722',
+      'G729',
+      'AMR',
       'PCM16B',
       'iLBC',
       'iSAC',

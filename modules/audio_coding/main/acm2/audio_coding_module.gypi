@@ -12,6 +12,8 @@
       'CNG',
       'G711',
       'G722',
+      'G729',
+      'AMR',
       'iLBC',
       'iSAC',
       'iSACFix',

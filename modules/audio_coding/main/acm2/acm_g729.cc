@@ -14,7 +14,7 @@
 // NOTE! G.729 is not included in the open-source package. Modify this file
 // or your codec API to match the function calls and names of used G.729 API
 // file.
-#include "webrtc/modules/audio_coding/main/codecs/g729/interface/g729_interface.h"
+#include "webrtc/modules/audio_coding/codecs/g729/include/g729_interface.h"
 #include "webrtc/modules/audio_coding/main/acm2/acm_common_defs.h"
 #include "webrtc/modules/audio_coding/main/acm2/acm_receiver.h"
 #include "webrtc/system_wrappers/interface/trace.h"
@@ -62,9 +62,8 @@ void ACMG729::DestructEncoderSafe() { return; }
 #else  //===================== Actual Implementation =======================
 ACMG729::ACMG729(int16_t codec_id, bool enable_red)
     : ACMGenericCodec(enable_red),
-      codec_id_(codec_id),
-      has_internal_dtx_(),
       encoder_inst_ptr_(NULL) {
+        codec_id_ = codec_id;
 }
 
 ACMG729::~ACMG729() {
@@ -187,7 +186,7 @@ int16_t ACMG729::DisableDTX() {
 int32_t ACMG729::ReplaceInternalDTXSafe(const bool replace_internal_dtx) {
   // This function is used to disable the G.729 built in DTX and use an
   // external instead.
-
+  int16_t status;
   if (replace_internal_dtx == has_internal_dtx_) {
     // Make sure we keep the DTX/VAD setting if possible
     bool old_enable_dtx = dtx_enabled_;
@@ -201,7 +200,7 @@ int32_t ACMG729::ReplaceInternalDTXSafe(const bool replace_internal_dtx) {
       ACMGenericCodec::DisableDTX();
     }
     has_internal_dtx_ = !replace_internal_dtx;
-    int16_t status = SetVADSafe(old_enable_dtx, old_enable_vad, old_mode);
+    status = ACMGenericCodec::SetVADSafe(&old_enable_dtx, &old_enable_vad, &old_mode);
     // Check if VAD status has changed from inactive to active, or if error was
     // reported
     if (status == 1) {

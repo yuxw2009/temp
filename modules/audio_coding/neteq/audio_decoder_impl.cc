@@ -34,6 +34,12 @@
 #ifdef WEBRTC_CODEC_PCM16
 #include "webrtc/modules/audio_coding/codecs/pcm16b/include/pcm16b.h"
 #endif
+#ifdef WEBRTC_CODEC_G729
+#include "webrtc/modules/audio_coding/codecs/g729/include/g729_interface.h"
+#endif
+#ifdef WEBRTC_CODEC_AMR
+#include "webrtc/modules/audio_coding/codecs/amr/include/amr_interface.h"
+#endif
 
 namespace webrtc {
 
@@ -70,6 +76,68 @@ int AudioDecoderPcmA::PacketDuration(const uint8_t* encoded,
   // One encoded byte per sample per channel.
   return static_cast<int>(encoded_len / channels_);
 }
+
+#ifdef WEBRTC_CODEC_G729
+AudioDecoderG729::AudioDecoderG729() {
+  WebRtcG729_CreateDecoder(&dec_state_);
+}
+
+AudioDecoderG729::~AudioDecoderG729() {
+  WebRtcG729_FreeDecoder(dec_state_);
+}
+
+int AudioDecoderG729::Decode(const uint8_t* encoded, size_t encoded_len,
+                             int16_t* decoded, SpeechType* speech_type) {
+  int16_t temp_type = 1;  // Default is speech.
+  int16_t ret = WebRtcG729_Decode(
+      dec_state_,
+      const_cast<int16_t*>(reinterpret_cast<const int16_t*>(encoded)),
+      static_cast<int16_t>(encoded_len), decoded, &temp_type);
+  *speech_type = ConvertSpeechType(temp_type);
+  return ret;
+}
+
+int AudioDecoderG729::Init() {
+  return WebRtcG729_DecoderInit(dec_state_);
+}
+
+int AudioDecoderG729::PacketDuration(const uint8_t* encoded,
+                                     size_t encoded_len) {
+  // 1/2 encoded byte per sample per channel.
+  return static_cast<int>(2 * encoded_len / channels_);
+}
+#endif
+
+#ifdef WEBRTC_CODEC_AMR
+AudioDecoderAMR::AudioDecoderAMR() {
+  WebRtcAmr_CreateDecoder(&dec_state_);
+}
+
+AudioDecoderAMR::~AudioDecoderAMR() {
+  WebRtcAmr_FreeDecoder(dec_state_);
+}
+
+int AudioDecoderAMR::Decode(const uint8_t* encoded, size_t encoded_len,
+                             int16_t* decoded, SpeechType* speech_type) {
+  int16_t temp_type = 1;  // Default is speech.
+  int16_t ret = WebRtcAmr_Decode(
+      dec_state_,
+      const_cast<int16_t*>(reinterpret_cast<const int16_t*>(encoded)),
+      static_cast<int16_t>(encoded_len), decoded, &temp_type);
+  *speech_type = ConvertSpeechType(temp_type);
+  return ret;
+}
+
+int AudioDecoderAMR::Init() {
+  return WebRtcAmr_DecoderInit(dec_state_);
+}
+
+int AudioDecoderAMR::PacketDuration(const uint8_t* encoded,
+                                     size_t encoded_len) {
+  // 1/2 encoded byte per sample per channel.
+  return static_cast<int>(2 * encoded_len / channels_);
+}
+#endif
 
 // PCM16B
 #ifdef WEBRTC_CODEC_PCM16
@@ -340,6 +408,12 @@ bool CodecSupported(NetEqDecoder codec_type) {
     case kDecoderG722:
     case kDecoderG722_2ch:
 #endif
+#ifdef WEBRTC_CODEC_G729
+    case kDecoderG729:
+#endif
+#ifdef WEBRTC_CODEC_AMR
+    case kDecoderAMR:
+#endif
 #ifdef WEBRTC_CODEC_OPUS
     case kDecoderOpus:
     case kDecoderOpus_2ch:
@@ -477,6 +551,14 @@ AudioDecoder* CreateAudioDecoder(NetEqDecoder codec_type) {
       return new AudioDecoderG722;
     case kDecoderG722_2ch:
       return new AudioDecoderG722Stereo;
+#endif
+#ifdef WEBRTC_CODEC_G729
+    case kDecoderG729:
+      return new AudioDecoderG729;
+#endif
+#ifdef WEBRTC_CODEC_AMR
+    case kDecoderAMR:
+      return new AudioDecoderAMR;
 #endif
 #ifdef WEBRTC_CODEC_OPUS
     case kDecoderOpus:

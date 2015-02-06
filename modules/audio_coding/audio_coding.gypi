@@ -13,6 +13,8 @@
     'codecs/cng/cng.gypi',
     'codecs/g711/g711.gypi',
     'codecs/g722/g722.gypi',
+    'codecs/g729/g729.gypi',
+    'codecs/amr/amr.gypi',
     'codecs/ilbc/ilbc.gypi',
     'codecs/isac/main/source/isac.gypi',
     'codecs/isac/fix/source/isacfix.gypi',
