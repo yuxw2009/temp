@@ -7,3 +7,4 @@
 *.ap_
 .svn/
 */.svn/
+examples/
