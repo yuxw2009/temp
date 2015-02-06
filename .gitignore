@@ -7,6 +7,7 @@
 *.ap_
 .svn/
 */.svn/
-examples/bin/
-examples/gen/
-examples/libs/
+examples/android/media_demo/bin/
+examples/android/media_demo/gen/
+examples/android/media_demo/libs/
+examples/android/opensl_loopback/
