@@ -7,4 +7,6 @@
 *.ap_
 .svn/
 */.svn/
-examples/
+examples/bin/
+examples/gen/
+examples/libs/
