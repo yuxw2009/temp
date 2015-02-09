@@ -16,17 +16,12 @@
 namespace webrtc {
 
 // enum for clockwise rotation.
-enum VideoFrameRotation {
-  VideoFrameRotation_0 = 0,
-  VideoFrameRotation_90 = 90,
-  VideoFrameRotation_180 = 180,
-  VideoFrameRotation_270 = 270
+enum VideoRotation {
+  kVideoRotation_0 = 0,
+  kVideoRotation_90 = 90,
+  kVideoRotation_180 = 180,
+  kVideoRotation_270 = 270
 };
-
-inline VideoFrameRotation ClockwiseRotationFromDegree(int rotation) {
-  ASSERT(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270);
-  return static_cast<webrtc::VideoFrameRotation>(rotation);
-}
 
 }  // namespace webrtc
 
