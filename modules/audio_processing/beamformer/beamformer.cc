@@ -62,11 +62,11 @@ const float kCovUniformGapHalfWidth = 0.001f;
 const float kHalfLifeSeconds = 0.05f;
 
 // The average mask is computed from masks in this mid-frequency range.
-const int kMidFrequnecyLowerBoundHz = 250;
-const int kMidFrequencyUpperBoundHz = 400;
+const int kLowAverageStartHz = 200;
+const int kLowAverageEndHz = 400;
 
-const int kHighFrequencyLowerBoundHz = 4000;
-const int kHighFrequencyUpperBoundHz = 7000;
+const int kHighAverageStartHz = 6000;
+const int kHighAverageEndHz = 6500;
 
 // Mask threshold over which the data is considered signal and not interference.
 const float kMaskTargetThreshold = 0.3f;
@@ -123,6 +123,18 @@ int Round(float x) {
   return std::floor(x + 0.5f);
 }
 
+// Calculates the sum of absolute values of a complex matrix.
+float SumAbs(const ComplexMatrix<float>& mat) {
+  float sum_abs = 0.f;
+  const complex<float>* const* mat_els = mat.elements();
+  for (int i = 0; i < mat.num_rows(); ++i) {
+    for (int j = 0; j < mat.num_columns(); ++j) {
+      sum_abs += std::abs(mat_els[i][j]);
+    }
+  }
+  return sum_abs;
+}
+
 }  // namespace
 
 Beamformer::Beamformer(const std::vector<Point>& array_geometry)
@@ -141,24 +153,24 @@ void Beamformer::Initialize(int chunk_size_ms, int sample_rate_hz) {
   sample_rate_hz_ = sample_rate_hz;
   decay_threshold_ =
       pow(2, (kFftSize / -2.f) / (sample_rate_hz_ * kHalfLifeSeconds));
-  mid_frequency_lower_bin_bound_ =
-      Round(kMidFrequnecyLowerBoundHz * kFftSize / sample_rate_hz_);
-  mid_frequency_upper_bin_bound_ =
-      Round(kMidFrequencyUpperBoundHz * kFftSize / sample_rate_hz_);
-  high_frequency_lower_bin_bound_ =
-      Round(kHighFrequencyLowerBoundHz * kFftSize / sample_rate_hz_);
-  high_frequency_upper_bin_bound_ =
-      Round(kHighFrequencyUpperBoundHz * kFftSize / sample_rate_hz_);
+  low_average_start_bin_ =
+      Round(kLowAverageStartHz * kFftSize / sample_rate_hz_);
+  low_average_end_bin_ =
+      Round(kLowAverageEndHz * kFftSize / sample_rate_hz_);
+  high_average_start_bin_ =
+      Round(kHighAverageStartHz * kFftSize / sample_rate_hz_);
+  high_average_end_bin_ =
+      Round(kHighAverageEndHz * kFftSize / sample_rate_hz_);
   current_block_ix_ = 0;
   previous_block_ix_ = -1;
   is_target_present_ = false;
   hold_target_blocks_ = kHoldTargetSeconds * 2 * sample_rate_hz / kFftSize;
   interference_blocks_count_ = hold_target_blocks_;
 
-  DCHECK_LE(mid_frequency_upper_bin_bound_, kNumFreqBins);
-  DCHECK_LT(mid_frequency_lower_bin_bound_, mid_frequency_upper_bin_bound_);
-  DCHECK_LE(high_frequency_upper_bin_bound_, kNumFreqBins);
-  DCHECK_LT(high_frequency_lower_bin_bound_, high_frequency_upper_bin_bound_);
+  DCHECK_LE(low_average_end_bin_, kNumFreqBins);
+  DCHECK_LT(low_average_start_bin_, low_average_end_bin_);
+  DCHECK_LE(high_average_end_bin_, kNumFreqBins);
+  DCHECK_LT(high_average_start_bin_, high_average_end_bin_);
 
   lapped_transform_.reset(new LappedTransform(num_input_channels_,
                                               1,
@@ -205,6 +217,9 @@ void Beamformer::InitDelaySumMasks() {
     complex_f norm_factor = sqrt(
         ConjugateDotProduct(delay_sum_masks_[f_ix], delay_sum_masks_[f_ix]));
     delay_sum_masks_[f_ix].Scale(1.f / norm_factor);
+    normalized_delay_sum_masks_[f_ix].CopyFrom(delay_sum_masks_[f_ix]);
+    normalized_delay_sum_masks_[f_ix].Scale(1.f / SumAbs(
+        normalized_delay_sum_masks_[f_ix]));
   }
 }
 
@@ -329,7 +344,7 @@ void Beamformer::ProcessAudioBlock(const complex_f* const* input,
   // Calculating the post-filter masks. Note that we need two for each
   // frequency bin to account for the positive and negative interferer
   // angle.
-  for (int i = 0; i < kNumFreqBins; ++i) {
+  for (int i = low_average_start_bin_; i < high_average_end_bin_; ++i) {
     eig_m_.CopyFromColumn(input, i, num_input_channels_);
     float eig_m_norm_factor =
         std::sqrt(ConjugateDotProduct(eig_m_, eig_m_)).real();
@@ -368,10 +383,7 @@ void Beamformer::ProcessAudioBlock(const complex_f* const* input,
   }
 
   ApplyLowFrequencyCorrection();
-
-  if (high_pass_exists_) {
-    CalculateHighFrequencyMask();
-  }
+  ApplyHighFrequencyCorrection();
 
   ApplyMasks(input, output);
 
@@ -408,7 +420,8 @@ void Beamformer::ApplyMasks(const complex_f* const* input,
   for (int f_ix = 0; f_ix < kNumFreqBins; ++f_ix) {
     output_channel[f_ix] = complex_f(0.f, 0.f);
 
-    const complex_f* delay_sum_mask_els = delay_sum_masks_[f_ix].elements()[0];
+    const complex_f* delay_sum_mask_els =
+        normalized_delay_sum_masks_[f_ix].elements()[0];
     for (int c_ix = 0; c_ix < num_input_channels_; ++c_ix) {
       output_channel[f_ix] += input[c_ix][f_ix] * delay_sum_mask_els[c_ix];
     }
@@ -430,31 +443,29 @@ void Beamformer::ApplyDecay() {
 void Beamformer::ApplyLowFrequencyCorrection() {
   float low_frequency_mask = 0.f;
   float* mask_els = postfilter_masks_[current_block_ix_].elements()[0];
-  for (int i = mid_frequency_lower_bin_bound_;
-       i <= mid_frequency_upper_bin_bound_;
-       ++i) {
+  for (int i = low_average_start_bin_; i < low_average_end_bin_; ++i) {
     low_frequency_mask += mask_els[i];
   }
 
-  low_frequency_mask /=
-      mid_frequency_upper_bin_bound_ - mid_frequency_lower_bin_bound_ + 1;
+  low_frequency_mask /= low_average_end_bin_ - low_average_start_bin_;
 
-  for (int i = 0; i < mid_frequency_lower_bin_bound_; ++i) {
+  for (int i = 0; i < low_average_start_bin_; ++i) {
     mask_els[i] = low_frequency_mask;
   }
 }
 
-void Beamformer::CalculateHighFrequencyMask() {
+void Beamformer::ApplyHighFrequencyCorrection() {
   float high_pass_mask = 0.f;
   float* mask_els = postfilter_masks_[current_block_ix_].elements()[0];
-  for (int i = high_frequency_lower_bin_bound_;
-       i <= high_frequency_upper_bin_bound_;
-       ++i) {
+  for (int i = high_average_start_bin_; i < high_average_end_bin_; ++i) {
     high_pass_mask += mask_els[i];
   }
 
-  high_pass_mask /=
-      high_frequency_upper_bin_bound_ - high_frequency_lower_bin_bound_ + 1;
+  high_pass_mask /= high_average_end_bin_ - high_average_start_bin_;
+
+  for (int i = high_average_end_bin_; i < kNumFreqBins; ++i) {
+    mask_els[i] = high_pass_mask;
+  }
 
   high_pass_postfilter_mask_ += high_pass_mask;
 }
