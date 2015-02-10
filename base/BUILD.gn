@@ -19,7 +19,6 @@ config("rtc_base_config") {
   defines = [
     "FEATURE_ENABLE_SSL",
     "LOGGING=1",
-    "USE_WEBRTC_DEV_BRANCH",
   ]
 
   # TODO(henrike): issue 3307, make rtc_base build without disabling
@@ -106,6 +105,8 @@ static_library("rtc_base_approved") {
   sources = [
     "checks.cc",
     "checks.h",
+    "event.cc",
+    "event.h",
     "exp_filter.cc",
     "exp_filter.h",
     "md5.cc",
@@ -149,7 +150,6 @@ static_library("rtc_base") {
 
   defines = [
     "LOGGING=1",
-    "USE_WEBRTC_DEV_BRANCH",
   ]
 
   sources = [
@@ -183,8 +183,6 @@ static_library("rtc_base") {
     "cryptstring.h",
     "diskcache.cc",
     "diskcache.h",
-    "event.cc",
-    "event.h",
     "fileutils.cc",
     "fileutils.h",
     "firewallsocketserver.cc",
