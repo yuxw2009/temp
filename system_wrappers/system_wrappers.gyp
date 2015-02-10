@@ -115,6 +115,11 @@
         }, {
           'sources!': [ 'source/data_log.cc', ],
         },],
+        ['rtc_use_direct_trace==1', {
+          'defines': [
+            'WEBRTC_DIRECT_TRACE',
+          ],
+        }],
         ['OS=="android"', {
           'defines': [
             'WEBRTC_THREAD_RR',
@@ -200,6 +205,7 @@
       'target_name': 'field_trial_default',
       'type': 'static_library',
       'sources': [
+        'interface/field_trial_default.h',
         'source/field_trial_default.cc',
       ],
       'dependencies': [
