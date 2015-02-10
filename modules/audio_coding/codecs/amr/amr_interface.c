@@ -44,29 +44,29 @@ int16_t WebRtcAmr_DecoderInit(AMRDecInst* dec_inst)
 
 int16_t WebRtcAmr_Encode(AMREncInst* enc_inst,int16_t* sample,int16_t sampleLen,int16_t* encoded,int16_t encodeMode)
 {   
+	int i ;
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = sampleLen/(AMR_SAMPLE_SHORT_LEN);
-	while(iter > 0)
+	for (i=0;i < iter;i++)
 	{
 		Encoder_Interface_Encode((void*)enc_inst,(enum Mode)encodeMode,sample,charEncoded,1);
 		sample      += AMR_SAMPLE_SHORT_LEN;
 		charEncoded += AMR_FRAME_BYTE_LEN;
-		iter--;
 	}
 	return AMR_FRAME_BYTE_LEN*iter;
 }
 
 int16_t WebRtcAmr_Decode(AMRDecInst* dec_inst,int16_t* encoded,int16_t len,int16_t* decoded,int16_t* speechType)
 {
+	int i;
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = len/AMR_FRAME_BYTE_LEN;
 	*speechType                = 1;
-	while(iter > 0)
+	for (i=0;i < iter;i++)
 	{
 		Decoder_Interface_Decode((void*)dec_inst,charEncoded,decoded,1);
 		charEncoded += AMR_FRAME_BYTE_LEN;
 		decoded     += AMR_SAMPLE_SHORT_LEN;
-		iter--;
 	}
 	return AMR_SAMPLE_SHORT_LEN*iter;
 }
