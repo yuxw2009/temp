@@ -58,8 +58,8 @@ const float kBoxcarHalfWidth = 0.001f;
 // that our covariance matrices are positive semidefinite.
 const float kCovUniformGapHalfWidth = 0.001f;
 
-// Lower bound on gain decay.
-const float kHalfLifeSeconds = 0.05f;
+// Alpha coefficient for mask smoothing.
+const float kMaskSmoothAlpha = 0.2f;
 
 // The average mask is computed from masks in this mid-frequency range.
 const int kLowAverageStartHz = 200;
@@ -76,6 +76,7 @@ const float kHoldTargetSeconds = 0.25f;
 
 // Does conjugate(|norm_mat|) * |mat| * transpose(|norm_mat|). No extra space is
 // used; to accomplish this, we compute both multiplications in the same loop.
+// The returned norm is clamped to be non-negative.
 float Norm(const ComplexMatrix<float>& mat,
            const ComplexMatrix<float>& norm_mat) {
   CHECK_EQ(norm_mat.num_rows(), 1);
@@ -97,7 +98,7 @@ float Norm(const ComplexMatrix<float>& mat,
     second_product += first_product * norm_mat_els[0][i];
     first_product = 0.f;
   }
-  return second_product.real();
+  return std::max(second_product.real(), 0.f);
 }
 
 // Does conjugate(|lhs|) * |rhs| for row vectors |lhs| and |rhs|.
@@ -151,8 +152,6 @@ Beamformer::Beamformer(const std::vector<Point>& array_geometry)
 void Beamformer::Initialize(int chunk_size_ms, int sample_rate_hz) {
   chunk_length_ = sample_rate_hz / (1000.f / chunk_size_ms);
   sample_rate_hz_ = sample_rate_hz;
-  decay_threshold_ =
-      pow(2, (kFftSize / -2.f) / (sample_rate_hz_ * kHalfLifeSeconds));
   low_average_start_bin_ =
       Round(kLowAverageStartHz * kFftSize / sample_rate_hz_);
   low_average_end_bin_ =
@@ -296,17 +295,12 @@ void Beamformer::ProcessChunk(const float* const* input,
   CHECK_EQ(num_input_channels, num_input_channels_);
   CHECK_EQ(num_frames_per_band, chunk_length_);
 
-  num_blocks_in_this_chunk_ = 0;
   float old_high_pass_mask = high_pass_postfilter_mask_;
-  high_pass_postfilter_mask_ = 0.f;
-  high_pass_exists_ = high_pass_split_input != NULL;
   lapped_transform_->ProcessChunk(input, output);
 
   // Apply delay and sum and post-filter in the time domain. WARNING: only works
   // because delay-and-sum is not frequency dependent.
-  if (high_pass_exists_) {
-    high_pass_postfilter_mask_ /= num_blocks_in_this_chunk_;
-
+  if (high_pass_split_input != NULL) {
     if (previous_block_ix_ == -1) {
       old_high_pass_mask = high_pass_postfilter_mask_;
     }
@@ -354,7 +348,7 @@ void Beamformer::ProcessAudioBlock(const complex_f* const* input,
 
     float rxim = Norm(target_cov_mats_[i], eig_m_);
     float ratio_rxiw_rxim = 0.f;
-    if (rxim != 0.f) {
+    if (rxim > 0.f) {
       ratio_rxiw_rxim = rxiws_[i] / rxim;
     }
 
@@ -379,7 +373,7 @@ void Beamformer::ProcessAudioBlock(const complex_f* const* input,
 
   // Can't access block_index - 1 on the first block.
   if (previous_block_ix_ >= 0) {
-    ApplyDecay();
+    ApplyMaskSmoothing();
   }
 
   ApplyLowFrequencyCorrection();
@@ -389,7 +383,6 @@ void Beamformer::ProcessAudioBlock(const complex_f* const* input,
 
   previous_block_ix_ = current_block_ix_;
   current_block_ix_ = (current_block_ix_ + 1) % kNumberSavedPostfilterMasks;
-  num_blocks_in_this_chunk_++;
 }
 
 float Beamformer::CalculatePostfilterMask(const ComplexMatrixF& interf_cov_mat,
@@ -400,7 +393,10 @@ float Beamformer::CalculatePostfilterMask(const ComplexMatrixF& interf_cov_mat,
   float rpsim = Norm(interf_cov_mat, eig_m_);
 
   // Find lambda.
-  float ratio = rpsiw / rpsim;
+  float ratio = 0.f;
+  if (rpsim > 0.f) {
+    ratio = rpsiw / rpsim;
+  }
   float numerator = rmw_r - ratio;
   float denominator = ratio_rxiw_rxim - ratio;
 
@@ -430,13 +426,13 @@ void Beamformer::ApplyMasks(const complex_f* const* input,
   }
 }
 
-void Beamformer::ApplyDecay() {
+void Beamformer::ApplyMaskSmoothing() {
   float* current_mask_els = postfilter_masks_[current_block_ix_].elements()[0];
   const float* previous_block_els =
       postfilter_masks_[previous_block_ix_].elements()[0];
   for (int i = 0; i < kNumFreqBins; ++i) {
-    current_mask_els[i] =
-        std::max(current_mask_els[i], previous_block_els[i] * decay_threshold_);
+    current_mask_els[i] = kMaskSmoothAlpha * current_mask_els[i] +
+                          (1.f - kMaskSmoothAlpha) * previous_block_els[i];
   }
 }
 
@@ -455,19 +451,17 @@ void Beamformer::ApplyLowFrequencyCorrection() {
 }
 
 void Beamformer::ApplyHighFrequencyCorrection() {
-  float high_pass_mask = 0.f;
+  high_pass_postfilter_mask_ = 0.f;
   float* mask_els = postfilter_masks_[current_block_ix_].elements()[0];
   for (int i = high_average_start_bin_; i < high_average_end_bin_; ++i) {
-    high_pass_mask += mask_els[i];
+    high_pass_postfilter_mask_ += mask_els[i];
   }
 
-  high_pass_mask /= high_average_end_bin_ - high_average_start_bin_;
+  high_pass_postfilter_mask_ /= high_average_end_bin_ - high_average_start_bin_;
 
   for (int i = high_average_end_bin_; i < kNumFreqBins; ++i) {
-    mask_els[i] = high_pass_mask;
+    mask_els[i] = high_pass_postfilter_mask_;
   }
-
-  high_pass_postfilter_mask_ += high_pass_mask;
 }
 
 // This method CHECKs for a uniform linear array.
