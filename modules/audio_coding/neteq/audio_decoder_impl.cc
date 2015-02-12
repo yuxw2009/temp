@@ -441,6 +441,9 @@ int CodecSampleRateHz(NetEqDecoder codec_type) {
 #ifdef WEBRTC_CODEC_AMR
     case kDecoderAMR:
 #endif
+#ifdef WEBRTC_CODEC_G729
+    case kDecoderG729:
+#endif
 #ifdef WEBRTC_CODEC_PCM16
     case kDecoderPCM16B:
     case kDecoderPCM16B_2ch:
