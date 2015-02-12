@@ -270,7 +270,6 @@ int32_t AudioCodingModuleImpl::Process() {
   FrameType frame_type = kAudioFrameSpeech;
   uint8_t current_payload_type = 0;
   bool has_data_to_send = false;
-  bool red_active = false;
   RTPFragmentationHeader my_fragmentation;
 
   // Keep the scope of the ACM critical section limited.
@@ -295,43 +294,39 @@ int32_t AudioCodingModuleImpl::Process() {
     } else {
       switch (encoding_type) {
         case kNoEncoding: {
-          current_payload_type = previous_pltype_;
+          FATAL() << "This case is no longer valid.";
           frame_type = kFrameEmpty;
           length_bytes = 0;
           break;
         }
         case kActiveNormalEncoded:
         case kPassiveNormalEncoded: {
-          current_payload_type = static_cast<uint8_t>(send_codec_inst_.pltype);
           frame_type = kAudioFrameSpeech;
           break;
         }
         case kPassiveDTXNB: {
-          current_payload_type = cng_nb_pltype_;
           frame_type = kAudioFrameCN;
           is_first_red_ = true;
           break;
         }
         case kPassiveDTXWB: {
-          current_payload_type = cng_wb_pltype_;
           frame_type = kAudioFrameCN;
           is_first_red_ = true;
           break;
         }
         case kPassiveDTXSWB: {
-          current_payload_type = cng_swb_pltype_;
           frame_type = kAudioFrameCN;
           is_first_red_ = true;
           break;
         }
         case kPassiveDTXFB: {
-          current_payload_type = cng_fb_pltype_;
           frame_type = kAudioFrameCN;
           is_first_red_ = true;
           break;
         }
       }
       has_data_to_send = true;
+      current_payload_type = encoded_info.payload_type;
       previous_pltype_ = current_payload_type;
 
       ConvertEncodedInfoToFragmentationHeader(encoded_info, &my_fragmentation);
@@ -348,8 +343,9 @@ int32_t AudioCodingModuleImpl::Process() {
       // have been switched to the new AudioEncoder interface.
       if ((codecs_[current_send_codec_idx_]->ExternalRedNeeded()) &&
           ((encoding_type == kActiveNormalEncoded) ||
-              (encoding_type == kPassiveNormalEncoded))) {
+           (encoding_type == kPassiveNormalEncoded))) {
         DCHECK(encoded_info.redundant.empty());
+        FATAL() << "Don't go here!";
         // RED is enabled within this scope.
         //
         // Note that, a special solution exists for iSAC since it is the only
@@ -389,7 +385,6 @@ int32_t AudioCodingModuleImpl::Process() {
         //
         //  Hence, even if every second packet is dropped, perfect
         //  reconstruction is possible.
-        red_active = true;
 
         has_data_to_send = false;
         // Skip the following part for the first packet in a RED session.
@@ -457,7 +452,7 @@ int32_t AudioCodingModuleImpl::Process() {
     CriticalSectionScoped lock(callback_crit_sect_);
 
     if (packetization_callback_ != NULL) {
-      if (red_active || my_fragmentation.fragmentationVectorSize > 0) {
+      if (my_fragmentation.fragmentationVectorSize > 0) {
         // Callback with payload data, including redundant data (RED).
         packetization_callback_->SendData(frame_type, current_payload_type,
                                           rtp_timestamp, stream, length_bytes,
@@ -1931,15 +1926,22 @@ bool AudioCodingImpl::MapCodecTypeToParameters(int codec_type,
       break;
 #endif
 #ifdef WEBRTC_CODEC_ILBC
-    case acm2::ACMCodecDB::kGSMAMR:
+    case acm2::ACMCodecDB::kILBC:
       *codec_name = "ILBC";
       *sample_rate_hz = 8000;
       *channels = 1;
       break;
 #endif
 #ifdef WEBRTC_CODEC_AMR
-    case acm2::ACMCodecDB::kILBC:
+    case acm2::ACMCodecDB::kGSMAMR:
       *codec_name = "AMR";
+      *sample_rate_hz = 8000;
+      *channels = 1;
+      break;
+#endif
+#ifdef WEBRTC_CODEC_G729
+    case acm2::ACMCodecDB::kG729:
+      *codec_name = "G729";
       *sample_rate_hz = 8000;
       *channels = 1;
       break;
@@ -1974,13 +1976,6 @@ bool AudioCodingImpl::MapCodecTypeToParameters(int codec_type,
       *codec_name = "G722";
       *sample_rate_hz = 16000;
       *channels = 2;
-      break;
-#endif
-#ifdef WEBRTC_CODEC_G729
-    case acm2::ACMCodecDB::kG729:
-      *codec_name = "G729";
-      *sample_rate_hz = 8000;
-      *channels = 1;
       break;
 #endif
 #ifdef WEBRTC_CODEC_OPUS
