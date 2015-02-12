@@ -222,7 +222,7 @@ const ACMCodecDB::CodecSettings ACMCodecDB::codec_settings_[] = {
     {4, {160, 240, 320, 480}, 0, 1, false},
 #endif
 #ifdef WEBRTC_CODEC_AMR
-    {3, {160, 320, 480}, 0, 1, true},
+    {3, {160, 320, 480}, 0, 1, false},
 #endif
 #ifdef WEBRTC_CODEC_AMRWB
     {3, {320, 640, 960}, 0, 1, true},
