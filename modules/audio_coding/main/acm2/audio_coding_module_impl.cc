@@ -1931,6 +1931,13 @@ bool AudioCodingImpl::MapCodecTypeToParameters(int codec_type,
       break;
 #endif
 #ifdef WEBRTC_CODEC_ILBC
+    case acm2::ACMCodecDB::kGSMAMR:
+      *codec_name = "AMR";
+      *sample_rate_hz = 8000;
+      *channels = 1;
+      break;
+#endif
+#ifdef WEBRTC_CODEC_AMR
     case acm2::ACMCodecDB::kILBC:
       *codec_name = "ILBC";
       *sample_rate_hz = 8000;

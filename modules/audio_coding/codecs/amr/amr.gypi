@@ -13,6 +13,9 @@
         'libraries': [
           '/home/ubuntu/WebRTC/src/webrtc/modules/audio_coding/codecs/amr/libopencoreamr.a',
         ],
+        'ldflags': [
+          '-llog'
+        ],
       },
     },
   ],

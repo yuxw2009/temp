@@ -1,12 +1,13 @@
 #include "interf_dec.h"
 #include "interf_enc.h"
 #include "amr_interface.h"
+#include <android/log.h>
 
 /**********************************************************************/
 
 int16_t WebRtcAmr_CreateEnc(AMREncInst** enc_inst)
 {
-	AMREncInst* context = (AMREncInst*)Encoder_Interface_init(1);
+	AMREncInst* context = (AMREncInst*)Encoder_Interface_init(0);
 	if (context != NULL)
 	{
 		*enc_inst = context;
@@ -20,10 +21,12 @@ int16_t WebRtcAmr_CreateEnc(AMREncInst** enc_inst)
 
 int16_t WebRtcAmr_CreateDecoder(AMRDecInst** dec_inst)
 {
+    __android_log_print(ANDROID_LOG_DEBUG,"AMR","WebRtcAmr_CreateDecoder");
 	AMRDecInst* context = (AMRDecInst*)Decoder_Interface_init();
 	if (context != NULL)
 	{
 		*dec_inst = context;
+		__android_log_print(ANDROID_LOG_DEBUG,"AMR","WebRtcAmr_CreateDecoder OK");
 		return 0;
 	}
 	else
@@ -62,18 +65,21 @@ int16_t WebRtcAmr_Decode(AMRDecInst* dec_inst,int16_t* encoded,int16_t len,int16
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = len/AMR_FRAME_BYTE_LEN;
 	*speechType                = 1;
+    __android_log_print(ANDROID_LOG_DEBUG,"AMR","WebRtcAmr_Decode.Sample Len is:%d",len);
 	for (i=0;i < iter;i++)
 	{
 		Decoder_Interface_Decode((void*)dec_inst,charEncoded,decoded,1);
 		charEncoded += AMR_FRAME_BYTE_LEN;
 		decoded     += AMR_SAMPLE_SHORT_LEN;
 	}
+	__android_log_print(ANDROID_LOG_DEBUG,"AMR","WebRtcAmr_Decode.Return Len is:%d",AMR_SAMPLE_SHORT_LEN*iter);
 	return AMR_SAMPLE_SHORT_LEN*iter;
 }
 
 int16_t WebRtcAmr_FreeEnc(AMREncInst* enc_inst)
 {
 	Encoder_Interface_exit((void*)enc_inst);
+	__android_log_print(ANDROID_LOG_DEBUG,"AMR","WebRtcAmr_FreeEnc");
 	return 0;
 }
 

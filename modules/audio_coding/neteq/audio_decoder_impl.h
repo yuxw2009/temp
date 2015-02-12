@@ -257,6 +257,9 @@ enum NetEqDecoder {
   kDecoderPCMu_2ch,
   kDecoderPCMa_2ch,
   kDecoderILBC,
+#ifdef WEBRTC_CODEC_AMR
+  kDecoderAMR,
+#endif
   kDecoderISAC,
   kDecoderISACswb,
   kDecoderISACfb,
@@ -271,6 +274,9 @@ enum NetEqDecoder {
   kDecoderPCM16B_5ch,
   kDecoderG722,
   kDecoderG722_2ch,
+#ifdef WEBRTC_CODEC_G729
+  kDecoderG729,
+#endif
   kDecoderRED,
   kDecoderAVT,
   kDecoderCNGnb,
@@ -280,12 +286,6 @@ enum NetEqDecoder {
   kDecoderArbitrary,
   kDecoderOpus,
   kDecoderOpus_2ch,
-#ifdef WEBRTC_CODEC_G729
-  kDecoderG729,
-#endif
-#ifdef WEBRTC_CODEC_AMR
-  kDecoderAMR,
-#endif
 };
 
 // Returns true if |codec_type| is supported.

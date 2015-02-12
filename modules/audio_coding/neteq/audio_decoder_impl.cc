@@ -19,8 +19,14 @@
 #ifdef WEBRTC_CODEC_G722
 #include "webrtc/modules/audio_coding/codecs/g722/include/g722_interface.h"
 #endif
+#ifdef WEBRTC_CODEC_G729
+#include "webrtc/modules/audio_coding/codecs/g729/include/g729_interface.h"
+#endif
 #ifdef WEBRTC_CODEC_ILBC
 #include "webrtc/modules/audio_coding/codecs/ilbc/interface/ilbc.h"
+#endif
+#ifdef WEBRTC_CODEC_AMR
+#include "webrtc/modules/audio_coding/codecs/amr/include/amr_interface.h"
 #endif
 #ifdef WEBRTC_CODEC_ISACFX
 #include "webrtc/modules/audio_coding/codecs/isac/fix/interface/audio_encoder_isacfix.h"
@@ -33,12 +39,6 @@
 #endif
 #ifdef WEBRTC_CODEC_PCM16
 #include "webrtc/modules/audio_coding/codecs/pcm16b/include/pcm16b.h"
-#endif
-#ifdef WEBRTC_CODEC_G729
-#include "webrtc/modules/audio_coding/codecs/g729/include/g729_interface.h"
-#endif
-#ifdef WEBRTC_CODEC_AMR
-#include "webrtc/modules/audio_coding/codecs/amr/include/amr_interface.h"
 #endif
 
 namespace webrtc {
@@ -382,6 +382,9 @@ bool CodecSupported(NetEqDecoder codec_type) {
 #ifdef WEBRTC_CODEC_ILBC
     case kDecoderILBC:
 #endif
+#ifdef WEBRTC_CODEC_AMR
+    case kDecoderAMR:
+#endif
 #if defined(WEBRTC_CODEC_ISACFX) || defined(WEBRTC_CODEC_ISAC)
     case kDecoderISAC:
 #endif
@@ -406,9 +409,6 @@ bool CodecSupported(NetEqDecoder codec_type) {
 #endif
 #ifdef WEBRTC_CODEC_G729
     case kDecoderG729:
-#endif
-#ifdef WEBRTC_CODEC_AMR
-    case kDecoderAMR:
 #endif
 #ifdef WEBRTC_CODEC_OPUS
     case kDecoderOpus:
@@ -437,6 +437,9 @@ int CodecSampleRateHz(NetEqDecoder codec_type) {
     case kDecoderPCMa_2ch:
 #ifdef WEBRTC_CODEC_ILBC
     case kDecoderILBC:
+#endif
+#ifdef WEBRTC_CODEC_AMR
+    case kDecoderAMR:
 #endif
 #ifdef WEBRTC_CODEC_PCM16
     case kDecoderPCM16B:
@@ -510,6 +513,10 @@ AudioDecoder* CreateAudioDecoder(NetEqDecoder codec_type) {
     case kDecoderILBC:
       return new AudioDecoderIlbc;
 #endif
+#ifdef WEBRTC_CODEC_AMR
+    case kDecoderAMR:
+      return new AudioDecoderAMR;
+#endif
 #if defined(WEBRTC_CODEC_ISACFX)
     case kDecoderISAC: {
       AudioEncoderDecoderIsacFix::Config config;
@@ -551,10 +558,6 @@ AudioDecoder* CreateAudioDecoder(NetEqDecoder codec_type) {
 #ifdef WEBRTC_CODEC_G729
     case kDecoderG729:
       return new AudioDecoderG729;
-#endif
-#ifdef WEBRTC_CODEC_AMR
-    case kDecoderAMR:
-      return new AudioDecoderAMR;
 #endif
 #ifdef WEBRTC_CODEC_OPUS
     case kDecoderOpus:
