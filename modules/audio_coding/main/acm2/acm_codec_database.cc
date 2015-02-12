@@ -578,7 +578,9 @@ ACMGenericCodec* ACMCodecDB::CreateCodecInstance(const CodecInst& codec_inst,
   // All we have support for right now.
   if (!STR_CASE_CMP(codec_inst.plname, "ISAC")) {
 #if (defined(WEBRTC_CODEC_ISAC) || defined(WEBRTC_CODEC_ISACFX))
-    return new ACMISAC(kISAC, enable_red);
+    return new ACMGenericCodecWrapper(codec_inst, cng_pt_nb, cng_pt_wb,
+                                      cng_pt_swb, cng_pt_fb, enable_red,
+                                      red_payload_type);
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "PCMU") ||
              !STR_CASE_CMP(codec_inst.plname, "PCMA")) {
@@ -601,11 +603,9 @@ ACMGenericCodec* ACMCodecDB::CreateCodecInstance(const CodecInst& codec_inst,
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "G722")) {
 #ifdef WEBRTC_CODEC_G722
-    if (codec_inst.channels == 1) {
-      return new ACMG722(kG722, enable_red);
-    } else {
-      return new ACMG722(kG722_2ch, enable_red);
-    }
+    return new ACMGenericCodecWrapper(codec_inst, cng_pt_nb, cng_pt_wb,
+                                      cng_pt_swb, cng_pt_fb, enable_red,
+                                      red_payload_type);
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "G7221")) {
     switch (codec_inst.plfreq) {
@@ -697,7 +697,9 @@ ACMGenericCodec* ACMCodecDB::CreateCodecInstance(const CodecInst& codec_inst,
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "opus")) {
 #ifdef WEBRTC_CODEC_OPUS
-    return new ACMOpus(kOpus, enable_red);
+    return new ACMGenericCodecWrapper(codec_inst, cng_pt_nb, cng_pt_wb,
+                                      cng_pt_swb, cng_pt_fb, enable_red,
+                                      red_payload_type);
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "speex")) {
 #ifdef WEBRTC_CODEC_SPEEX
@@ -746,46 +748,9 @@ ACMGenericCodec* ACMCodecDB::CreateCodecInstance(const CodecInst& codec_inst,
     return new ACMCNG(codec_id, enable_red);
   } else if (!STR_CASE_CMP(codec_inst.plname, "L16")) {
 #ifdef WEBRTC_CODEC_PCM16
-    // For L16 we need to check sampling frequency to know what codec to create.
-    int codec_id;
-    if (codec_inst.channels == 1) {
-      switch (codec_inst.plfreq) {
-        case 8000: {
-          codec_id = kPCM16B;
-          break;
-        }
-        case 16000: {
-          codec_id = kPCM16Bwb;
-          break;
-        }
-        case 32000: {
-          codec_id = kPCM16Bswb32kHz;
-          break;
-        }
-        default: {
-          return NULL;
-        }
-      }
-    } else {
-      switch (codec_inst.plfreq) {
-        case 8000: {
-          codec_id = kPCM16B_2ch;
-          break;
-        }
-        case 16000: {
-          codec_id = kPCM16Bwb_2ch;
-          break;
-        }
-        case 32000: {
-          codec_id = kPCM16Bswb32kHz_2ch;
-          break;
-        }
-        default: {
-          return NULL;
-        }
-      }
-    }
-    return new ACMPCM16B(codec_id, enable_red);
+    return new ACMGenericCodecWrapper(codec_inst, cng_pt_nb, cng_pt_wb,
+                                      cng_pt_swb, cng_pt_fb, enable_red,
+                                      red_payload_type);
 #endif
   } else if (!STR_CASE_CMP(codec_inst.plname, "telephone-event")) {
 #ifdef WEBRTC_CODEC_AVT
