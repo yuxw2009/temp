@@ -132,10 +132,12 @@ ViEEncoder::ViEEncoder(int32_t engine_id,
                        uint32_t number_of_cores,
                        const Config& config,
                        ProcessThread& module_process_thread,
-                       BitrateController* bitrate_controller)
+                       BitrateController* bitrate_controller,
+                       bool disable_default_encoder)
   : engine_id_(engine_id),
     channel_id_(channel_id),
     number_of_cores_(number_of_cores),
+    disable_default_encoder_(disable_default_encoder),
     vcm_(*webrtc::VideoCodingModule::Create()),
     vpm_(*webrtc::VideoProcessingModule::Create(ViEModuleId(engine_id,
                                                             channel_id))),
@@ -202,26 +204,24 @@ bool ViEEncoder::Init() {
   }
   qm_callback_ = new QMVideoSettingsCallback(&vpm_);
 
+  if (!disable_default_encoder_) {
 #ifdef VIDEOCODEC_VP8
-  VideoCodecType codec_type = webrtc::kVideoCodecVP8;
+    VideoCodecType codec_type = webrtc::kVideoCodecVP8;
 #else
-  VideoCodecType codec_type = webrtc::kVideoCodecI420;
+    VideoCodecType codec_type = webrtc::kVideoCodecI420;
 #endif
-
-  VideoCodec video_codec;
-  if (vcm_.Codec(codec_type, &video_codec) != VCM_OK) {
-    return false;
-  }
-  {
-    CriticalSectionScoped cs(data_cs_.get());
-    send_padding_ = video_codec.numberOfSimulcastStreams > 1;
-  }
-  if (vcm_.RegisterSendCodec(&video_codec, number_of_cores_,
-                             PayloadRouter::DefaultMaxPayloadLength()) != 0) {
-    return false;
-  }
-  if (default_rtp_rtcp_->RegisterSendPayload(video_codec) != 0) {
-    return false;
+    VideoCodec video_codec;
+    if (vcm_.Codec(codec_type, &video_codec) != VCM_OK) {
+      return false;
+    }
+    {
+      CriticalSectionScoped cs(data_cs_.get());
+      send_padding_ = video_codec.numberOfSimulcastStreams > 1;
+    }
+    if (vcm_.RegisterSendCodec(&video_codec, number_of_cores_,
+                               PayloadRouter::DefaultMaxPayloadLength()) != 0) {
+      return false;
+    }
   }
   if (vcm_.RegisterTransportCallback(this) != 0) {
     return false;
@@ -338,6 +338,9 @@ int32_t ViEEncoder::DeRegisterExternalEncoder(uint8_t pl_type) {
     return -1;
   }
 
+  if (disable_default_encoder_)
+    return 0;
+
   // If the external encoder is the current send codec, use vcm internal
   // encoder.
   if (current_send_codec.plType == pl_type) {
@@ -370,9 +373,6 @@ int32_t ViEEncoder::SetEncoder(const webrtc::VideoCodec& video_codec) {
     return -1;
   }
 
-  if (default_rtp_rtcp_->RegisterSendPayload(video_codec) != 0) {
-    return -1;
-  }
   // Convert from kbps to bps.
   std::vector<uint32_t> stream_bitrates = AllocateStreamBitrates(
       video_codec.startBitrate * 1000,
