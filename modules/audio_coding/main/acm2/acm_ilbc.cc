@@ -85,7 +85,8 @@ int16_t ACMILBC::InternalInitEncoder(WebRtcACMCodecParams* codec_params) {
     // processing block of 20ms
     return WebRtcIlbcfix_EncoderInit(encoder_inst_ptr_, 20);
   } else if ((240 == (codec_params->codec_inst).pacsize) ||
-      (480 == (codec_params->codec_inst).pacsize)) {
+      (480 == (codec_params->codec_inst).pacsize) || 
+      (960 == (codec_params->codec_inst).pacsize)) {
     // processing block of 30ms
     return WebRtcIlbcfix_EncoderInit(encoder_inst_ptr_, 30);
   } else {

@@ -47,18 +47,24 @@ int16_t WebRtcAmr_Encode(AMREncInst* enc_inst,int16_t* sample,int16_t sampleLen,
 	int i ;
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = sampleLen/(AMR_SAMPLE_SHORT_LEN);
+	int16_t encodedLen = 0;
 	for (i=0;i < iter;i++)
 	{
-		Encoder_Interface_Encode((void*)enc_inst,(enum Mode)encodeMode,sample,charEncoded,1);
+/*		Encoder_Interface_Encode((void*)enc_inst,(enum Mode)encodeMode,sample,charEncoded,1);
 		sample      += AMR_SAMPLE_SHORT_LEN;
-		charEncoded += AMR_FRAME_BYTE_LEN;
+		charEncoded += AMR_FRAME_BYTE_LEN;*/
+		tmp=Encoder_Interface_Encode((void*)enc_inst,(enum Mode)encodeMode,sample,charEncoded,1);
+		sample      += tmp;
+		charEncoded += tmp;
+		encodedLen += tmp;
 	}
-	return AMR_FRAME_BYTE_LEN*iter;
+/*	return AMR_FRAME_BYTE_LEN*iter;*/
+	return encodedLen;
 }
 
 int16_t WebRtcAmr_Decode(AMRDecInst* dec_inst,int16_t* encoded,int16_t len,int16_t* decoded,int16_t* speechType)
 {
-	int i;
+/*	int i;
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = len/AMR_FRAME_BYTE_LEN;
 	*speechType                = 1;
@@ -68,7 +74,24 @@ int16_t WebRtcAmr_Decode(AMRDecInst* dec_inst,int16_t* encoded,int16_t len,int16
 		charEncoded += AMR_FRAME_BYTE_LEN;
 		decoded     += AMR_SAMPLE_SHORT_LEN;
 	}
-	return AMR_SAMPLE_SHORT_LEN*iter;
+	return AMR_SAMPLE_SHORT_LEN*iter;*/
+	unsigned char* p = (unsigned char*)encoded;
+	int tmp = 0;
+	int rc = 0;
+	*speechType = 0;
+	while(len > 0)
+	{
+	    tmp = Decoder_Interface_Decode(dec_inst, p, decoded, 0);
+	    tmp += 1;
+	    /*caspar*/
+	    //sprintf(buf,"Decoder_Interface_Decode offset:%i",tmp);
+	    //__android_log_write(ANDROID_LOG_ERROR, "WEBRTC AMR TRACE",buf);
+	    p += tmp;
+	    decoded += 160;
+	    len -= tmp;
+	    rc += 160;
+	}
+	return rc;
 }
 
 int16_t WebRtcAmr_FreeEnc(AMREncInst* enc_inst)

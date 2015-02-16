@@ -76,8 +76,8 @@ int VoiceChannelTransport::SetLocalReceiver(uint16_t rtp_port) {
 }
 
 int VoiceChannelTransport::SetSendDestination(const char* ip_address,
-                                              uint16_t rtp_port) {
-  return socket_transport_->InitializeSendSockets(ip_address, rtp_port);
+                                              uint16_t rtp_port,uint16_t rtcp_port) {
+  return socket_transport_->InitializeSendSockets(ip_address, rtp_port,rtcp_port);
 }
 
 

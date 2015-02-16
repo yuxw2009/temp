@@ -130,10 +130,12 @@ const CodecInst ACMCodecDB::database_[] = {
   {110, "PCMU", 8000, 160, 2, 64000},
   {118, "PCMA", 8000, 160, 2, 64000},
 #ifdef WEBRTC_CODEC_ILBC
-  {102, "ILBC", 8000, 240, 1, 13300},
+//  {102, "ILBC", 8000, 240, 1, 13300},
+  {102, "ILBC", 8000, 480, 1, 13300},
 #endif
 #ifdef WEBRTC_CODEC_AMR
-  {114, "AMR", 8000, 160, 1, 12200},
+//  {114, "AMR", 8000, 160, 1, 12200},
+  {114, "AMR", 8000, 960, 1, 4750},
 #endif
 #ifdef WEBRTC_CODEC_AMRWB
   {115, "AMR-WB", 16000, 320, 1, 20000},
@@ -219,10 +221,10 @@ const ACMCodecDB::CodecSettings ACMCodecDB::codec_settings_[] = {
     {6, {80, 160, 240, 320, 400, 480}, 0, 2, false},
     {6, {80, 160, 240, 320, 400, 480}, 0, 2, false},
 #ifdef WEBRTC_CODEC_ILBC
-    {4, {160, 240, 320, 480}, 0, 1, false},
+    {5, {160, 240, 320, 480, 960}, 0, 1, false},
 #endif
 #ifdef WEBRTC_CODEC_AMR
-    {3, {160, 320, 480}, 0, 1, false},
+    {4, {160, 320, 480,960}, 0, 1, false},
 #endif
 #ifdef WEBRTC_CODEC_AMRWB
     {3, {320, 640, 960}, 0, 1, true},
@@ -782,7 +784,7 @@ bool ACMCodecDB::IsISACRateValid(int rate) {
 
 // Checks if the bitrate is valid for iLBC.
 bool ACMCodecDB::IsILBCRateValid(int rate, int frame_size_samples) {
-  if (((frame_size_samples == 240) || (frame_size_samples == 480)) &&
+  if (((frame_size_samples == 240) || (frame_size_samples == 480) || (frame_size_samples == 960)) &&
       (rate == 13300)) {
     return true;
   } else if (((frame_size_samples == 160) || (frame_size_samples == 320)) &&
