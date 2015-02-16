@@ -100,7 +100,7 @@ int AudioDecoderG729::Init() {
 }
 
 int AudioDecoderG729::PacketDuration(const uint8_t* encoded,
-                                     size_t encoded_len) {
+                                     size_t encoded_len) const{
   // 1/2 encoded byte per sample per channel.
   return static_cast<int>(2 * encoded_len / channels_);
 }
@@ -131,7 +131,7 @@ int AudioDecoderAMR::Init() {
 }
 
 int AudioDecoderAMR::PacketDuration(const uint8_t* encoded,
-                                     size_t encoded_len) {
+                                     size_t encoded_len) const {
   // 1/2 encoded byte per sample per channel.
   return static_cast<int>(2 * encoded_len / channels_);
 }

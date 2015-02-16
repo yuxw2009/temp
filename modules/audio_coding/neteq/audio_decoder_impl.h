@@ -139,7 +139,7 @@ class AudioDecoderG729 : public AudioDecoder {
                      int16_t* decoded, SpeechType* speech_type);
   virtual bool HasDecodePlc() const { return false; }
   virtual int Init();
-  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len);
+  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len) const;
 
  private:
   G729DecInst* dec_state_;
@@ -156,7 +156,7 @@ class AudioDecoderAMR : public AudioDecoder {
                      int16_t* decoded, SpeechType* speech_type);
   virtual bool HasDecodePlc() const { return false; }
   virtual int Init();
-  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len);
+  virtual int PacketDuration(const uint8_t* encoded, size_t encoded_len) const;
 
  private:
   AMRDecInst* dec_state_;
