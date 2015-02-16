@@ -34,7 +34,7 @@
 // Macro for native functions that can be found by way of jni-auto discovery.
 // Note extern "C" is needed for "discovery" of native methods to work.
 #define JOWW(rettype, name)                                             \
-  extern "C" rettype JNIEXPORT JNICALL Java_org_webrtc_webrtcdemo_##name
+  extern "C" rettype JNIEXPORT JNICALL Java_com_livecom_webrtc_naticeApi_##name
 
 namespace {
 
