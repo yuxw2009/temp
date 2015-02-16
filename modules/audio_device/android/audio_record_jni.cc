@@ -56,7 +56,7 @@ void AudioRecordJni::SetAndroidAudioDeviceObjects(void* jvm, void* env,
   // Load the locally-defined WebRtcAudioRecord class and create a new global
   // reference to it.
   jclass local_class = FindClass(
-      jni, "org/webrtc/voiceengine/WebRtcAudioRecord");
+      jni, "com/livecom/webrtc/voiceengine/WebRtcAudioRecord");
   g_audio_record_class = reinterpret_cast<jclass>(
       NewGlobalRef(jni, local_class));
 
