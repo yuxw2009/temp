@@ -51,6 +51,7 @@ int16_t WebRtcAmr_Encode(AMREncInst* enc_inst,int16_t* sample,int16_t sampleLen,
 	unsigned char* charEncoded = (unsigned char*)encoded;
 	int16_t iter               = sampleLen/(AMR_SAMPLE_SHORT_LEN);
 	int16_t encodedLen = 0;
+	int16_t tmp = 0;
 	for (i=0;i < iter;i++)
 	{
 /*		Encoder_Interface_Encode((void*)enc_inst,(enum Mode)encodeMode,sample,charEncoded,1);
