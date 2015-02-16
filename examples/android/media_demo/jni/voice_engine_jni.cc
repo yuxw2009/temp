@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include <android/log.h>
 
 #include "webrtc/base/arraysize.h"
 #include "webrtc/examples/android/media_demo/jni/jni_helpers.h"
@@ -219,6 +220,17 @@ JOWW(jint, VoiceEngine_deleteChannel)(JNIEnv* jni, jobject j_voe,
   return voe_data->DeleteChannel(channel);
 }
 
+JOWW(jint, VoiceEngine_setTraceFile)(JNIEnv* jni, jobject, jstring j_filename,
+                                     jboolean file_counter) {
+  std::string filename = JavaToStdString(jni, j_filename);
+  return webrtc::VoiceEngine::SetTraceFile(filename.c_str(), file_counter);
+}
+
+JOWW(jint, VoiceEngine_nativeSetTraceFilter)(JNIEnv* jni, jobject,
+                                             jint filter) {
+  return webrtc::VoiceEngine::SetTraceFilter(filter);
+}
+
 JOWW(jint, VoiceEngine_setLocalReceiver)(JNIEnv* jni, jobject j_voe,
                                          jint channel, jint port) {
   VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
@@ -229,12 +241,12 @@ JOWW(jint, VoiceEngine_setLocalReceiver)(JNIEnv* jni, jobject j_voe,
 
 JOWW(jint, VoiceEngine_setSendDestination)(JNIEnv* jni, jobject j_voe,
                                            jint channel, jint port,
-                                           jstring j_addr) {
+                                           jstring j_addr, jint rtcpport) {
   VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
   std::string addr = JavaToStdString(jni, j_addr);
   webrtc::test::VoiceChannelTransport* transport =
       voe_data->GetTransport(channel);
-  return transport->SetSendDestination(addr.c_str(), port);
+  return transport->SetSendDestination(addr.c_str(), port,rtcpport);
 }
 
 JOWW(jint, VoiceEngine_startListen)(JNIEnv* jni, jobject j_voe, jint channel) {
@@ -272,6 +284,14 @@ JOWW(jint, VoiceEngine_setSpeakerVolume)(JNIEnv* jni, jobject j_voe,
   VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
   return voe_data->volume->SetSpeakerVolume(level);
 }
+
+JOWW(jint, VoiceEngine_setMicVolume)(JNIEnv* jni, jobject j_voe,
+                                         jint level) {
+  VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
+  return voe_data->volume->SetMicVolume(level);
+}
+
+
 
 JOWW(jint, VoiceEngine_setLoudspeakerStatus)(JNIEnv* jni, jobject j_voe,
                                              jboolean enable) {
@@ -335,8 +355,25 @@ JOWW(jint, VoiceEngine_setSendCodec)(JNIEnv* jni, jobject j_voe, jint channel,
                                      jobject j_codec) {
   VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
   webrtc::CodecInst* inst = GetCodecInst(jni, j_codec);
-  return voe_data->codec->SetSendCodec(channel, *inst);
+  int i = voe_data->codec->SetSendCodec(channel, *inst);
+  __android_log_print(ANDROID_LOG_INFO, "JNI", "SetSendCodec:%d",i); 
+  return i;  
 }
+
+JOWW(jint, VoiceEngine_setVADStatus)(JNIEnv* jni, jobject j_voe, jint channel) {
+  VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
+  int vre=voe_data->codec->SetVADStatus(channel, true, webrtc::kVadAggressiveHigh); 
+  __android_log_print(ANDROID_LOG_INFO, "JNI", "SetVADStatus:%d", vre); 
+  return vre;  
+}
+
+JOWW(jint, VoiceEngine_setNACKStatus)(JNIEnv* jni, jobject j_voe, jint channel) {
+  VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
+  int nre = voe_data->rtp->SetNACKStatus(channel, true, 16);
+  __android_log_print(ANDROID_LOG_INFO, "JNI", "SetNACKStatus:%d", nre); 
+  return nre;  
+}
+
 
 JOWW(jint, VoiceEngine_setEcStatus)(JNIEnv* jni, jobject j_voe, jboolean enable,
                                     jint ec_mode) {

@@ -43,7 +43,7 @@ class VoiceChannelTransport : public UdpTransportData {
   int SetLocalReceiver(uint16_t rtp_port);
 
   // Specifies the destination port and IP address for a specified channel.
-  int SetSendDestination(const char* ip_address, uint16_t rtp_port);
+  int SetSendDestination(const char* ip_address, uint16_t rtp_port, uint16_t rtcp_port=0);
 
  private:
   int channel_;
