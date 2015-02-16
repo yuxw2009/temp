@@ -42,7 +42,7 @@ int32_t AudioRecordJni::SetAndroidAudioDeviceObjects(void* javaVM, void* env,
   globalJNIEnv = reinterpret_cast<JNIEnv*>(env);
   // Get java class type (note path to class packet).
   jclass javaScClassLocal = globalJNIEnv->FindClass(
-      "org/webrtc/voiceengine/WebRtcAudioRecord");
+      "com/livecom/webrtc/voiceengine/WebRtcAudioRecord");
   if (!javaScClassLocal) {
     WEBRTC_TRACE(kTraceError, kTraceAudioDevice, -1,
                  "%s: could not find java class", __FUNCTION__);
