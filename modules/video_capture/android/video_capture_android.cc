@@ -59,7 +59,7 @@ int32_t SetCaptureAndroidVM(JavaVM* javaVM, jobject context) {
     videocapturemodule::DeviceInfoAndroid::Initialize(ats.env());
 
     jclass j_capture_class =
-        ats.env()->FindClass("org/webrtc/videoengine/VideoCaptureAndroid");
+        ats.env()->FindClass("com/livecom/webrtc/videoengine/VideoCaptureAndroid");
     assert(j_capture_class);
     g_java_capturer_class =
         reinterpret_cast<jclass>(ats.env()->NewGlobalRef(j_capture_class));

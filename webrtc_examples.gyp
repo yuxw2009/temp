@@ -47,9 +47,9 @@
           ],
           'actions': [
             {
-              # TODO(yujie.mao): Convert building of the demo to a proper GYP
-              # target so this action is not needed once chromium's
-              # apk-building machinery can be used. (crbug.com/225101)
+             # TODO(yujie.mao): Convert building of the demo to a proper GYP
+             # target so this action is not needed once chromium's
+             # apk-building machinery can be used. (crbug.com/225101)
               'action_name': 'build_webrtcdemo_apk',
               'variables': {
                 'android_webrtc_demo_root': '<(webrtc_root)/examples/android/media_demo',

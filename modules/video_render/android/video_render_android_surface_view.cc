@@ -120,7 +120,7 @@ int32_t AndroidSurfaceViewRenderer::Init() {
 
   // get the ViESurfaceRender class
   jclass javaRenderClassLocal =
-      env->FindClass("org/webrtc/videoengine/ViESurfaceRenderer");
+      env->FindClass("com/livecom/webrtc/videoengine/ViESurfaceRenderer");
   if (!javaRenderClassLocal) {
     WEBRTC_TRACE(kTraceError,
                  kTraceVideoRenderer,
@@ -337,7 +337,7 @@ int32_t AndroidSurfaceViewChannel::Init(
   }
 
   jclass javaRenderClass =
-      env->FindClass("org/webrtc/videoengine/ViESurfaceRenderer");
+      env->FindClass("com/livecom/webrtc/videoengine/ViESurfaceRenderer");
   if (!javaRenderClass) {
     WEBRTC_TRACE(kTraceError,
                  kTraceVideoRenderer,
