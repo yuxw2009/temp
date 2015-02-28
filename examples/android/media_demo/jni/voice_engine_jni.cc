@@ -343,7 +343,7 @@ JOWW(jobject, VoiceEngine_getCodec)(JNIEnv* jni, jobject j_voe, jint index) {
   webrtc::CodecInst* codec = new webrtc::CodecInst();
   CHECK(voe_data->codec->GetCodec(index, *codec) == 0,
         "getCodec must be called with valid index");
-  jclass j_codec_class = GetClass(jni, "org/webrtc/webrtcdemo/CodecInst");
+  jclass j_codec_class = GetClass(jni, "com/livecom/webrtc/naticeApi/CodecInst");
   jmethodID j_codec_ctor = GetMethodID(jni, j_codec_class, "<init>", "(J)V");
   jobject j_codec =
       jni->NewObject(j_codec_class, j_codec_ctor, jlongFromPointer(codec));

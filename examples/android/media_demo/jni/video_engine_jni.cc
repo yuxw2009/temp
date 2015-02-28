@@ -75,7 +75,7 @@ class VideoDecodeEncodeObserver : public webrtc::ViEDecoderObserver,
         GetMethodID(jni, j_observer_class, "incomingRate", "(III)V");
     incoming_codec_changed_ =
         GetMethodID(jni, j_observer_class, "incomingCodecChanged",
-                    "(ILorg/webrtc/webrtcdemo/VideoCodecInst;)V");
+                    "(ILcom/livecom/webrtc/naticeApi/VideoCodecInst;)V");
     request_new_keyframe_ =
         GetMethodID(jni, j_observer_class, "requestNewKeyFrame", "(I)V");
     outgoing_rate_ =
@@ -111,7 +111,7 @@ class VideoDecodeEncodeObserver : public webrtc::ViEDecoderObserver,
     JNIEnv* jni = ats.env();
     webrtc::VideoCodec* codec = new webrtc::VideoCodec(video_codec);
     jclass j_codec_class =
-        GetClass("org/webrtc/webrtcdemo/VideoCodecInst");
+        GetClass("com/livecom/webrtc/naticeApi/VideoCodecInst");
     jmethodID j_codec_ctor = GetMethodID(jni, j_codec_class, "<init>", "(J)V");
     jobject j_codec =
         jni->NewObject(j_codec_class, j_codec_ctor, jlongFromPointer(codec));
@@ -318,11 +318,11 @@ VideoEngineData* GetVideoEngineData(JNIEnv* jni, jobject j_vie) {
 namespace webrtc_examples {
 
 static const char* g_classes[] = {
-  "org/webrtc/webrtcdemo/CameraDesc",
-  "org/webrtc/webrtcdemo/RtcpStatistics",
-  "org/webrtc/webrtcdemo/VideoCodecInst",
-  "org/webrtc/webrtcdemo/VideoDecodeEncodeObserver",
-  "org/webrtc/webrtcdemo/MediaCodecVideoDecoder"};
+  "com/livecom/webrtc/naticeApi/CameraDesc",
+  "com/livecom/webrtc/naticeApi/RtcpStatistics",
+  "com/livecom/webrtc/naticeApi/VideoCodecInst",
+  "com/livecom/webrtc/naticeApi/VideoDecodeEncodeObserver",
+  "com/livecom/webrtc/naticeApi/MediaCodecVideoDecoder"};
 
 void SetVieDeviceObjects(JavaVM* vm) {
   CHECK(vm, "Trying to register NULL vm");
@@ -452,7 +452,7 @@ JOWW(jobject, VideoEngine_getCodec)(JNIEnv* jni, jobject j_vie, jint index) {
   webrtc::VideoCodec* codec = new webrtc::VideoCodec();
   CHECK(vie_data->codec->GetCodec(index, *codec) == 0,
         "getCodec must be called with valid index");
-  jclass j_codec_class = GetClass("org/webrtc/webrtcdemo/VideoCodecInst");
+  jclass j_codec_class = GetClass("com/livecom/webrtc/naticeApi/VideoCodecInst");
   jmethodID j_codec_ctor = GetMethodID(jni, j_codec_class, "<init>", "(J)V");
   jobject j_codec =
       jni->NewObject(j_codec_class, j_codec_ctor, jlongFromPointer(codec));
@@ -511,7 +511,7 @@ JOWW(jobject,
     delete camera_info;
     return NULL;
   }
-  jclass j_camera_class = GetClass("org/webrtc/webrtcdemo/CameraDesc");
+  jclass j_camera_class = GetClass("com/livecom/webrtc/naticeApi/CameraDesc");
   jmethodID j_camera_ctor = GetMethodID(jni, j_camera_class, "<init>", "(J)V");
   jobject j_camera = jni->NewObject(j_camera_class, j_camera_ctor,
                                     jlongFromPointer(camera_info));
@@ -603,7 +603,7 @@ JOWW(jobject, VideoEngine_getReceivedRtcpStatistics)(JNIEnv* jni, jobject j_vie,
     return NULL;
   }
   jclass j_rtcp_statistics_class =
-      GetClass("org/webrtc/webrtcdemo/RtcpStatistics");
+      GetClass("com/livecom/webrtc/naticeApi/RtcpStatistics");
   jmethodID j_rtcp_statistics_ctor =
       GetMethodID(jni, j_rtcp_statistics_class, "<init>", "(IIIII)V");
   jobject j_rtcp_statistics =

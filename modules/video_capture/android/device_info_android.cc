@@ -87,17 +87,17 @@ static AndroidCameraInfo* FindCameraInfoByName(const std::string& name) {
 // static
 void DeviceInfoAndroid::Initialize(JNIEnv* jni) {
   // TODO(henrike): this "if" would make a lot more sense as an assert, but
-  // Java_org_webrtc_videoengineapp_ViEAndroidJavaAPI_GetVideoEngine() and
-  // Java_org_webrtc_videoengineapp_ViEAndroidJavaAPI_Terminate() conspire to
+  // Java_com_livecom_webrtc_videoengineapp_ViEAndroidJavaAPI_GetVideoEngine() and
+  // Java_com_livecom_webrtc_videoengineapp_ViEAndroidJavaAPI_Terminate() conspire to
   // prevent this.  Once that code is made to only
   // VideoEngine::SetAndroidObjects() once per process, this can turn into an
-  // assert.
+  // assert.  
   if (g_camera_info)
     return;
 
   g_camera_info = new std::vector<AndroidCameraInfo>();
   jclass j_info_class =
-      jni->FindClass("org/webrtc/videoengine/VideoCaptureDeviceInfoAndroid");
+      jni->FindClass("com/livecom/webrtc/videoengine/VideoCaptureDeviceInfoAndroid");
   assert(j_info_class);
   jmethodID j_initialize = jni->GetStaticMethodID(
       j_info_class, "getDeviceInfo", "()Ljava/lang/String;");
