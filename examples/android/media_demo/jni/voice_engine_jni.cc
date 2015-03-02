@@ -356,6 +356,7 @@ JOWW(jint, VoiceEngine_setSendCodec)(JNIEnv* jni, jobject j_voe, jint channel,
   VoiceEngineData* voe_data = GetVoiceEngineData(jni, j_voe);
   webrtc::CodecInst* inst = GetCodecInst(jni, j_codec);
   int i = voe_data->codec->SetSendCodec(channel, *inst);
+  __android_log_print(ANDROID_LOG_INFO, "JNI", "SetSendCodec:pltype:%d plname:%s",inst->pltype,inst->plname); 
   __android_log_print(ANDROID_LOG_INFO, "JNI", "SetSendCodec:%d",i); 
   return i;  
 }

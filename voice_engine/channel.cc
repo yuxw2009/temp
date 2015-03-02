@@ -1292,7 +1292,7 @@ int32_t
 Channel::SetSendCodec(const CodecInst& codec)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
-                 "Channel::SetSendCodec()");
+                 "Channel::SetSendCodec()pltype:%d plname:%s rate:%d",codec.pltype,codec.plname,codec.rate);
 
     if (audio_coding_->RegisterSendCodec(codec) != 0)
     {
