@@ -134,8 +134,8 @@ const CodecInst ACMCodecDB::database_[] = {
   {102, "ILBC", 8000, 480, 1, 13300},
 #endif
 #ifdef WEBRTC_CODEC_AMR
-  {114, "AMR", 8000, 160, 1, 12200},
-//  {114, "AMR", 8000, 960, 1, 4750},
+//  {114, "AMR", 8000, 160, 1, 12200},
+  {114, "AMR", 8000, 960, 1, 4750},
 #endif
 #ifdef WEBRTC_CODEC_AMRWB
   {115, "AMR-WB", 16000, 320, 1, 20000},
